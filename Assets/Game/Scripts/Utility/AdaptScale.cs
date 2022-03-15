@@ -6,18 +6,11 @@ using UnityEngine;
 public class AdaptScale : MonoBehaviour
 {
     [SerializeField] Transform objectToAdapt;
-    [SerializeField] bool isHole = false;
     
     #if UNITY_EDITOR
         private void Update()
-        {
-            if (Application.IsPlaying(gameObject)) return;
-            if (objectToAdapt == null) return;
-            if(isHole){
-                this.transform.localScale = objectToAdapt.transform.localScale / 2;
-            }else{
-                adjustPoints();
-            }
+        { 
+            adjustPoints();
         }
     #endif
 
