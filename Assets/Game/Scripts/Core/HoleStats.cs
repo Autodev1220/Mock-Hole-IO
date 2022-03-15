@@ -4,18 +4,18 @@ using UnityEngine;
 
 public class HoleStats : MonoBehaviour
 {   
-    [SerializeField] int level = 1;
+    [SerializeField] float level = 1;
     [SerializeField] int points = 0;
     [SerializeField] float speed = 2f;
     [Header("Point Before Increasing Scale")]
-    [SerializeField] int factor = 30;
+    [SerializeField] float factor = 30;
     
     
     //level will increase base on score
     //scale will be  level = points/factor 
     //speed will gradually increase by level
 
-    public int GetLevel(){
+    public float GetLevel(){
         return level;
     }
 
@@ -33,11 +33,11 @@ public class HoleStats : MonoBehaviour
     }
 
     public void CalculatePointsToLevel(){
-        level = (int) points/factor;
-    }
-
-    public void CalculateLevelToSpeed(){
-        speed = speed + level;
+        if(points > factor){
+            level = points / factor;
+        }else{
+            level = 1;
+        }
     }
     
 }

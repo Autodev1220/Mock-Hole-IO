@@ -6,15 +6,16 @@ namespace Game.Core{
     public class ObstacleStats : MonoBehaviour
     {
         [SerializeField] int points;
-        [SerializeField] int level;
+        [SerializeField] float level;
         [SerializeField] ObstacleController obsCon;
+        [SerializeField] Material defaultMat;
 
         private void Start()
         {
             if (obsCon == null) obsCon = transform.GetComponentInParent<ObstacleController>();
         }
 
-        public int GetLevel()
+        public float GetLevel()
         {
             return level;
         }
@@ -28,6 +29,10 @@ namespace Game.Core{
         {
             this.GetComponent<Collider>().enabled = true;
             obsCon.ReactivateObstacle();
+        }
+
+        public void ReturnDefaultMat(){
+            GetComponent<Renderer>().material = defaultMat;
         }
     }
 }

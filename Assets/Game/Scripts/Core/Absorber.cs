@@ -33,7 +33,6 @@ public class Absorber : MonoBehaviour
             //send back to the pool
             holeStats.SetPoints(holeStats.GetPoints() + obStats.GetPoints());
             holeStats.CalculatePointsToLevel();
-            holeStats.CalculateLevelToSpeed();
             holeStats.GetComponent<IPolyCounterPart>().UpdateStats();
             scoreManager.updateStanding();
             StartCoroutine(DisableAfterFall(other.gameObject));
@@ -46,7 +45,6 @@ public class Absorber : MonoBehaviour
         yield return new WaitForSecondsRealtime(timeBeforeDisable);
         other.gameObject.SetActive(false);
         other.gameObject.GetComponent<ObstacleStats>().CallReactivate();
-        
     }
 
 

@@ -14,6 +14,7 @@ namespace Game.Core{
         [SerializeField] HoleStats playerStat = null;
         [SerializeField] HoleStats EnemyStat = null;
         [SerializeField] Timer timer = null;
+        [SerializeField] float maxLevel = 10;
         [SerializeField] GameObject polyCounterPartRef;
 
         [Header("Set in Prefab")]
@@ -111,7 +112,7 @@ namespace Game.Core{
 
             if (timeSinceArrivedAtWaypoint > waypointDwellTime)
             {
-                mover.StartMoveAction(nextPosition,speedFraction); //move to a waypoint/guard point
+                mover.StartMoveAction(nextPosition,speedFraction); //move to a waypoint
             }
 
         }
@@ -146,9 +147,7 @@ namespace Game.Core{
             float scalDif = Vector3.Distance(transform.localScale,player.transform.localScale);
             Debug.Log(scalDif);
             if (Vector3.Distance(this.transform.position, player.transform.position) <= scalDif){
-                Debug.Log("Dead");
                 player.GetComponent<PlayerController>().Dead();
-                //player.resetPos;
             }
         }
 
@@ -175,25 +174,23 @@ namespace Game.Core{
 
         private void IncreaseScale()
         {
-            int level = EnemyStat.GetLevel();
-            this.transform.localScale = new Vector3((float)level,1f,(float)level);
+            float level = EnemyStat.GetLevel();
+            if(level > maxLevel){
+                this.transform.localScale = new Vector3((float)maxLevel, 1f, (float)maxLevel);
+            }else{
+                this.transform.localScale = new Vector3(level, level, level);
+            }
+            
             AttackRange = 2 * level; 
             polyCounterPartRef.GetComponent<AdaptTransform>().changeScale();
         }
 
-        private void IncreaseSpeed(){
-            mover.SetSpeed(EnemyStat.GetSpeed());
-        }
-
         public void UpdateStats(){
             IncreaseScale();
-            IncreaseSpeed();
-            
         }
 
         public void SetPoly(GameObject poly){
             polyCounterPartRef = poly;
-           
         }
 
         void TimeRunOut(bool isTimeRunOut)
@@ -207,7 +204,8 @@ namespace Game.Core{
         }
 
         private void OnDrawGizmos()
-        { //draw attack range
+        {   
+            //draw attack range
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, AttackRange);
         }

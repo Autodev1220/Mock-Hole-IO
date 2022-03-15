@@ -31,7 +31,6 @@ public class AreaChecker : MonoBehaviour
             GameObject nearestGameObject = null;
             for (int i = 0; i < ObjectsInRange.Count; i++)
             {
-
                 float sqrDistanceToCenter = (this.transform.position - ObjectsInRange[i].transform.position).sqrMagnitude;
                 if (sqrDistanceToCenter < minSqrDistance)
                 {
@@ -55,6 +54,4 @@ public class AreaChecker : MonoBehaviour
         public void ClearList(){
             ObjectsInRange.Clear();
         }
-
-
 }

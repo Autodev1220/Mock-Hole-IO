@@ -7,7 +7,7 @@ using Game.Movement;
 namespace Game.Core{
     public class PlayerController : MonoBehaviour, IPolyCounterPart
     {
-        // Start is called before the first frame update
+        
         [SerializeField] Vector3 movement = new Vector3();
         [SerializeField] Mover mover;
         [SerializeField] GameObject polyCounterPartPreFab;
@@ -16,6 +16,7 @@ namespace Game.Core{
         [SerializeField] GameObject polyCounterPartRef;
         [SerializeField] Transform camTransform;
         [SerializeField] Timer timer = null;
+        [SerializeField] float maxLevel = 10;
 
         [Header("Speed fraction to adjust speed")]
         [Range(0, 1)]
@@ -23,9 +24,6 @@ namespace Game.Core{
 
         bool isCanMove = true;
         Vector3 originPos;
-
-        //[Range(0, 1)]
-        //[SerializeField] float speedFraction = 1f;
         
         void Start()
         {
@@ -42,29 +40,23 @@ namespace Game.Core{
 
         void Update()
         {
-            #if UNITY_EDITOR
-                    //keyboard input
-                    movement.x = Input.GetAxis("Horizontal");
-                    movement.z = Input.GetAxis("Vertical");
-            #endif
+            // #if UNITY_EDITOR
+            //         //keyboard input
+            //         // movement.x = Input.GetAxis("Horizontal");
+            //         // movement.z = Input.GetAxis("Vertical");
+            // #endif
 
-            #if UNITY_ANDROID
-                    //gamepad input
-            #endif
-
-            //mouse
-            if(InteractWithMovement())return;
-            
-
-        }
-
-        void FixedUpdate()
-        {
             if(isCanMove){
-                mover.Move(movement);
+                if (InteractWithMovement()) return; //mouspointer
             }
-            
         }
+
+        // void FixedUpdate()
+        // {
+        //     if(isCanMove){
+        //         mover.Move(movement);
+        //     }
+        // }
 
         private bool InteractWithMovement() //Move to where the pointer is clicked
         {
@@ -95,15 +87,16 @@ namespace Game.Core{
         }
 
         private void IncreaseScale(){
-            int level = holeStats.GetLevel();
-            this.transform.localScale = new Vector3((float)level, 1f, (float)level);
+            float level = holeStats.GetLevel();
+            if(level > maxLevel ) {
+                this.transform.localScale = new Vector3((float)maxLevel, maxLevel, (float)maxLevel);
+            }else{
+                this.transform.localScale = new Vector3(level, level, level);
+            }
+
             polyCounterPartRef.GetComponent<AdaptTransform>().changeScale();
         }
 
-        private void IncreaseSpeed()
-        {
-            mover.SetSpeed(holeStats.GetSpeed());
-        }
 
         private void UpdateCamera(){
             float level = (float)holeStats.GetLevel()/2;
@@ -113,14 +106,11 @@ namespace Game.Core{
         public void UpdateStats()
         {
             IncreaseScale();
-            IncreaseSpeed();
-            
         }
 
         public void SetPoly(GameObject poly)
         {
             polyCounterPartRef = poly;
-            
         }
 
         void TimeRunOut(bool isTimeRunOut)
@@ -150,9 +140,6 @@ namespace Game.Core{
             yield return fader.FadeIn(1f);
             isCanMove = true;
         }
-
-        
-
        
     }
 }

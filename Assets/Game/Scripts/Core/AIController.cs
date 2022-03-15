@@ -7,7 +7,6 @@ namespace Game.Core{
     {
        //set patrol points
        //move within patrol points
-       
     }
 }
 
