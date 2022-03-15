@@ -15,12 +15,11 @@ namespace Game.Core{
 
         
         private void Start() {
-            //get all players with then instantiate reference
+            //get all players and then instantiate reference
             //instantiate their poly collider representation
             //upon instatiation set their player control
             playersHole = findAllHolePlayer();
             SpawnPolyCounterPart(playersHole);
-            
         }
 
         private void FixedUpdate() { 
@@ -65,6 +64,7 @@ namespace Game.Core{
         void SpawnPolyCounterPart(GameObject[] playersGB){
             for(int index = 0; index < playersGB.Length; index ++){
                 GameObject poly = Instantiate(playersGB[index].GetComponent<IPolyCounterPart>().GetPolyCounterPart(),transform.position,transform.rotation,this.transform);
+                playersGB[index].GetComponent<IPolyCounterPart>().SetPoly(poly);
                 poly.GetComponent<AdaptTransform>().SetReference(playersGB[index].transform);
                 PolygonCol2dHole.Add(poly.GetComponent<PolygonCollider2D>());
             }

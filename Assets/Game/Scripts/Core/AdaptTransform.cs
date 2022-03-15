@@ -6,8 +6,6 @@ namespace Game.Core{
     public class AdaptTransform : MonoBehaviour
     {
         [SerializeField] Transform holeAttached;
-
-
         private void Update()
         {
             if (holeAttached == null) return;
@@ -27,6 +25,7 @@ namespace Game.Core{
         }
 
         public void changeScale(){
+            Debug.Log(holeAttached.gameObject.name);
             this.transform.localScale = holeAttached.transform.localScale * .5f;
             //can be called from player controller;
         }

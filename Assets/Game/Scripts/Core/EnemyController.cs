@@ -7,13 +7,21 @@ namespace Game.Core{
     public class EnemyController : MonoBehaviour, IPolyCounterPart
     {
         [Header("Reference will initialize at the Start")]
-        [SerializeField] Mover mover;
-        [SerializeField] AreaChecker areaChecker;
-        [SerializeField] GameObject polyCounterPart;
+        [SerializeField] Mover mover = null;
+        [SerializeField] AreaChecker areaChecker = null;
         [SerializeField] GameObject nearestObject = null;
         [SerializeField] GameObject player = null;
         [SerializeField] HoleStats playerStat = null;
         [SerializeField] HoleStats EnemyStat = null;
+        [SerializeField] Timer timer = null;
+        [SerializeField] GameObject polyCounterPartRef;
+
+        [Header("Set in Prefab")]
+        [SerializeField] GameObject polyCounterPartPreFab;
+
+        [Header("Speed fraction to adjust speed")]
+        [Range(0, 1)]
+        [SerializeField] float speedFraction = 1f;
 
         [Header("Attack Range")]
         [SerializeField] float AttackRange = 2f;
@@ -29,6 +37,7 @@ namespace Game.Core{
         [SerializeField] Vector3 guardPosition;
 
         float timeSinceArrivedAtWaypoint = Mathf.Infinity;
+        bool isCanMove = true;
         
 
         void Start()
@@ -38,24 +47,30 @@ namespace Game.Core{
             if(player == null) player = GameObject.FindGameObjectWithTag("Player");
             if(playerStat == null) playerStat = player.GetComponent<HoleStats>();
             if(EnemyStat == null)  EnemyStat = GetComponent<HoleStats>();
+            if (timer == null){
+                timer = FindObjectOfType<Timer>();
+                timer.timeRunOut += TimeRunOut;
+            } 
+            
         }
-
-       
-
+        
         private void FixedUpdate()
         {
-
-            if(CheckPlayer()){
-                AttackPlayer();
+            if(isCanMove){
+                if (CheckPlayer())
+                {
+                    AttackPlayer();
+                }
+                else if (areaChecker.hasNearest() && CheckLevelObstacle())
+                {
+                    CheckNearestAbsorbable();
+                }
+                else
+                {
+                    PatrolBehaviour();
+                }
             }
-            else if (areaChecker.hasNearest())
-            {
-                CheckNearestAbsorbable();
-            }
-            else
-            {
-                 PatrolBehaviour();
-            }
+            
 
             updateTimers();
 
@@ -71,7 +86,7 @@ namespace Game.Core{
         private void AttackPlayer()
         {
             mover.Cancel();
-            mover.StartMoveAction(player.transform.position);
+            mover.StartMoveAction(player.transform.position,speedFraction);
             Absorb();
         }
 
@@ -96,7 +111,7 @@ namespace Game.Core{
 
             if (timeSinceArrivedAtWaypoint > waypointDwellTime)
             {
-                mover.StartMoveAction(nextPosition); //move to a waypoint/guard point
+                mover.StartMoveAction(nextPosition,speedFraction); //move to a waypoint/guard point
             }
 
         }
@@ -106,32 +121,40 @@ namespace Game.Core{
         {
             mover.Cancel();
             nearestObject = areaChecker.GetNearestObject(); //get the nearest object
-                if (nearestObject != null)
-                {
-                    mover.StartMoveAction(nearestObject.transform.position); // move and eat nearest obstacle
-                    if (!nearestObject.activeSelf)
-                    {
-                        areaChecker.RemoveFromList(nearestObject);
-                        nearestObject = null;
-                    }
+            if (nearestObject != null)
+            {
+                mover.StartMoveAction(nearestObject.transform.position,speedFraction); // move and eat nearest obstacle
+                if(!nearestObject.activeSelf){
+                    areaChecker.RemoveFromList(nearestObject);
+                    nearestObject = null;
                 }
+                
+                
+            }
         }
 
-        
+        private bool CheckLevelObstacle()
+        {
+            nearestObject = areaChecker.GetNearestObject();
+            bool isGreater = nearestObject.GetComponent<ObstacleStats>().GetLevel() <= EnemyStat.GetLevel();
+            nearestObject = null;
+            return isGreater;
+        }
+
 
         void Absorb(){ //absorb player hole
             float scalDif = Vector3.Distance(transform.localScale,player.transform.localScale);
             Debug.Log(scalDif);
             if (Vector3.Distance(this.transform.position, player.transform.position) <= scalDif){
                 Debug.Log("Dead");
-                
+                player.GetComponent<PlayerController>().Dead();
                 //player.resetPos;
             }
         }
 
         public GameObject GetPolyCounterPart()
         {
-            return polyCounterPart;
+            return polyCounterPartPreFab;
         }
 
         private bool AtWaypoint()
@@ -150,15 +173,43 @@ namespace Game.Core{
             currentWaypointIndex = patrolPath.GetNextIndex(currentWaypointIndex);
         }
 
-        public void IncreaseScale()
+        private void IncreaseScale()
         {
-            this.transform.localScale = this.transform.localScale * EnemyStat.GetLevel();
-            polyCounterPart.GetComponent<AdaptTransform>().changeScale();
+            int level = EnemyStat.GetLevel();
+            this.transform.localScale = new Vector3((float)level,1f,(float)level);
+            AttackRange = 2 * level; 
+            polyCounterPartRef.GetComponent<AdaptTransform>().changeScale();
         }
 
-        private void OnDrawGizmos() { //draw attack range
+        private void IncreaseSpeed(){
+            mover.SetSpeed(EnemyStat.GetSpeed());
+        }
+
+        public void UpdateStats(){
+            IncreaseScale();
+            IncreaseSpeed();
+            
+        }
+
+        public void SetPoly(GameObject poly){
+            polyCounterPartRef = poly;
+           
+        }
+
+        void TimeRunOut(bool isTimeRunOut)
+        {
+            if(isTimeRunOut){
+                mover.SetSpeed(0f);
+                mover.Cancel();
+                isCanMove = false;
+            }
+            
+        }
+
+        private void OnDrawGizmos()
+        { //draw attack range
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position,AttackRange);
+            Gizmos.DrawWireSphere(transform.position, AttackRange);
         }
     }
 }

@@ -27,15 +27,15 @@ namespace Game.Movement{
             transform.position += playerPos * speed * Time.deltaTime;
         }
 
-        public void StartMoveAction(Vector3 destination)
+        public void StartMoveAction(Vector3 destination,float speedFraction)
         {   //calls in the PlayerController to start movement
-            MoveTo(destination);
+            MoveTo(destination,speedFraction);
         }
 
-        public void MoveTo(Vector3 destination)
+        public void MoveTo(Vector3 destination,float speedFraction)
         {
             navMeshAgent.destination = destination;
-            navMeshAgent.speed = speed; //* Mathf.Clamp01(speedFraction);
+            navMeshAgent.speed = speed * Mathf.Clamp01(speedFraction);
             navMeshAgent.isStopped = false;
         }
 
@@ -51,8 +51,15 @@ namespace Game.Movement{
 
         public void Cancel()
         {   //called when new action is triggered or called
-            Debug.Log("Stopped");
+            //Debug.Log("Stopped");
             Stop();
+        }
+
+        public void Teleport(Vector3 pos){
+            Cancel();
+            navMeshAgent.enabled = false;
+            this.transform.position = pos;
+            navMeshAgent.enabled = true;
         }
 
         public void SetSpeed(float speedAdjustment){

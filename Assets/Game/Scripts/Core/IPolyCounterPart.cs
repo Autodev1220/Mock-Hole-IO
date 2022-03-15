@@ -6,7 +6,8 @@ namespace Game.Core{
     public interface IPolyCounterPart
     {
        GameObject GetPolyCounterPart();
-        void IncreaseScale();
+        void UpdateStats();
+        void SetPoly(GameObject poly);
     }
 }
 

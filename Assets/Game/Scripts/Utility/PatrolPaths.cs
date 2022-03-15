@@ -6,11 +6,11 @@ namespace Game.Movement{
     public class PatrolPaths : MonoBehaviour
     {
 
+        [SerializeField] Color pathColor;
         const float wayPointGizmoRadius = 0.3f;
-
         private void OnDrawGizmos()
         {   //Visualize patrol path
-            Gizmos.color = Color.magenta;
+            Gizmos.color = pathColor;
             for (int i = 0; i < transform.childCount; i++)
             {
                 Gizmos.DrawSphere(GetPosition(i), wayPointGizmoRadius);
@@ -33,7 +33,7 @@ namespace Game.Movement{
 
         public Vector3 GetPosition(int i) //get waypoint position
         {
-            return transform.GetChild(i).position;
+              return transform.GetChild(i).position;
         }
     }
 

@@ -10,7 +10,7 @@ public class AreaChecker : MonoBehaviour
 
         public void OnTriggerEnter(Collider other)
         {
-            Debug.Log(other.name);
+           // Debug.Log(other.name);
             if(other.gameObject.tag == "Obstacle"){
                 ObjectsInRange.Add(other.gameObject);
             }
@@ -50,6 +50,10 @@ public class AreaChecker : MonoBehaviour
             if(ObjectsInRange.Contains(obstacle)){
                 ObjectsInRange.Remove(obstacle);
             }
+        }
+
+        public void ClearList(){
+            ObjectsInRange.Clear();
         }
 
 
