@@ -6,11 +6,15 @@ using UnityEngine;
 namespace Game.Core{
     public class ColliderController : MonoBehaviour
     {
-        
+        [Header("Reference to the polygon collider ground counterpart")]
         [SerializeField] PolygonCollider2D polyGroundCollider;
+        [Header("Will be generated based on the polyGroundCollider")]
         [SerializeField] MeshCollider GroundCollider;
+        [Header("List of PolygonCollider Counterpart")]
         [SerializeField] List<PolygonCollider2D> PolygonCol2dHole = new List<PolygonCollider2D>();
+        [Header("All players/enemy/hole/ who has a polygon counterpart")]
         [SerializeField] GameObject[] playersHole;
+        [Header("Generated mesh which the mesh collider will based on")]
         [SerializeField]Mesh GeneratedMesh;
 
         
@@ -42,7 +46,7 @@ namespace Game.Core{
             
         }
 
-        void GenerateMeshCollider(){
+        void GenerateMeshCollider(){ //generate mesh collider
             if(GeneratedMesh != null) GeneratedMesh = null;
                 GeneratedMesh = polyGroundCollider.CreateMesh(true,true);
                 GroundCollider.sharedMesh = GeneratedMesh;
@@ -58,7 +62,7 @@ namespace Game.Core{
             return gbPlayers;
         }
 
-        void SpawnPolyCounterPart(GameObject[] playersGB){
+        void SpawnPolyCounterPart(GameObject[] playersGB){ // spawn polygoncollider counterpart
             for(int index = 0; index < playersGB.Length; index ++){
                 GameObject poly = Instantiate(playersGB[index].GetComponent<IPolyCounterPart>().GetPolyCounterPart(),transform.position,transform.rotation,this.transform);
                 playersGB[index].GetComponent<IPolyCounterPart>().SetPoly(poly);

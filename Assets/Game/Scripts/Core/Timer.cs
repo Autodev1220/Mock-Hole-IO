@@ -7,8 +7,7 @@ using System;
 namespace Game.Core{
     public class Timer : MonoBehaviour
     {
-
-        [SerializeField] float timeRemaining = 10;
+        [SerializeField] float timeRemaining = 60;
         [SerializeField] Text timeText;
         bool timerIsRunning = false;
 
@@ -26,12 +25,12 @@ namespace Game.Core{
             {
                 if (timeRemaining > 0)
                 {
-                    timeRemaining -= Time.deltaTime;
                     DisplayTime(timeRemaining);
+                    timeRemaining -= Time.deltaTime;
+                    
                 }
                 else
                 {
-                    Debug.Log("Time has run out!");
                     timeRemaining = 0;
                     timeRunOut.Invoke(true);
                     timerIsRunning = false;

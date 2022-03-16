@@ -10,8 +10,14 @@ namespace Game.Core{
         //list of text
         //get all players with holestat
         //assign text to each player
+        [Header("Reference of TextDisplay")]
         [SerializeField] List<Text> scoreDisplay = new List<Text>();
+        
+        [Header("Holder of all existing player's HoleStats")]
         [SerializeField] List<HoleStats> holeStats = new List<HoleStats>();
+        [SerializeField] GameObject promptBox;
+        [SerializeField] List<Text> scorePromptTexts = new List<Text>();
+        [SerializeField] Timer timer;
 
         private void Start()
         {
@@ -21,6 +27,10 @@ namespace Game.Core{
                 holeStats.Add(holestat);
             }
             SortPoints();
+
+            timer = this.GetComponent<Timer>();
+            timer.timeRunOut += ShowPrompt;
+
         }
 
         public void SortPoints()
@@ -56,10 +66,27 @@ namespace Game.Core{
             SortPoints();
             for (int i = 0; i < holeStats.Count; i++)
             {
-                scoreDisplay[i].text = holeStats[i].gameObject.name + ":" + holeStats[i].GetPoints();
+                scoreDisplay[i].text = holeStats[i].gameObject.name + "  :  " + holeStats[i].GetPoints();
                 yield return null;
             }
 
+        }
+
+        void ShowPrompt(bool timerEnds){
+            if(timerEnds){
+                SortPoints();
+                for (int i = 0; i < holeStats.Count; i++)
+                {
+                    scorePromptTexts[i].text = holeStats[i].gameObject.name + "  :  " + holeStats[i].GetPoints();
+                    
+                }
+                promptBox.SetActive(true);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            timer.timeRunOut -= ShowPrompt;
         }
     }
 }

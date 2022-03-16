@@ -3,46 +3,54 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SceneController : MonoBehaviour
+namespace Game.SceneManagement
 {
-    [SerializeField] float fadeInTime = 1f;
-    [SerializeField] float fadeOutTime = 1f;
-    [SerializeField] float fadeWaitTime = 1f;
-    [SerializeField] Fader fader;
-
-    IEnumerator Start() {
-        fader = FindObjectOfType<Fader>();
-        fader.FadeOutImmediate();
-        yield return fader.FadeIn(fadeInTime);
-    }
-
-    public void SceneTransfer(int SceneNumber){
-        StartCoroutine(Transistion(SceneNumber));
-    }
-
-    IEnumerator Transistion(int SceneNumber)
+    public class SceneController : MonoBehaviour
     {
-        DontDestroyOnLoad(gameObject);//dont destroy until finish loading
+        [SerializeField] float fadeInTime = 1f;
+        [SerializeField] float fadeOutTime = 1f;
+        [SerializeField] float fadeWaitTime = 1f;
+        [SerializeField] Fader fader;
 
-        Fader fader = FindObjectOfType<Fader>();
+        IEnumerator Start()
+        {
+            fader = FindObjectOfType<Fader>();
+            fader.FadeOutImmediate();
+            yield return fader.FadeIn(fadeInTime);
+        }
 
-        yield return fader.FadeOut(fadeOutTime);
+        public void SceneTransfer(int SceneNumber)
+        {
+            StartCoroutine(Transistion(SceneNumber));
+        }
 
-        yield return SceneManager.LoadSceneAsync(SceneNumber);
+        IEnumerator Transistion(int SceneNumber)
+        {
+            DontDestroyOnLoad(gameObject);//dont destroy until finish loading
 
-        yield return new WaitForSeconds(fadeWaitTime);
-        yield return fader.FadeIn(fadeInTime);
+            Fader fader = FindObjectOfType<Fader>();
 
-        Destroy(gameObject);
+            yield return fader.FadeOut(fadeOutTime);
+
+            yield return SceneManager.LoadSceneAsync(SceneNumber);
+
+            yield return new WaitForSeconds(fadeWaitTime);
+            yield return fader.FadeIn(fadeInTime);
+
+            Destroy(gameObject);
+        }
+
+        void ShowExitPrompt()
+        {
+            //show prompt
+        }
+
+        public void Quit()
+        {
+            Application.Quit();
+        }
+
+
     }
-
-    void ShowExitPrompt(){
-        //show prompt
-    }
-
-    void Quit(){
-        Application.Quit();
-    }
-
-    
 }
+

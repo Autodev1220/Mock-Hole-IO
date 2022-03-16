@@ -2,8 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PersistentObjectSpawner : MonoBehaviour
+
+namespace Game.SceneManagement
 {
+    public class PersistentObjectSpawner : MonoBehaviour
+    {
  
         //using this to avoid singleton
         [SerializeField] GameObject persistentObjectPrefab;
@@ -31,4 +34,5 @@ public class PersistentObjectSpawner : MonoBehaviour
             GameObject persistentObject = Instantiate(persistentObjectPrefab);
             DontDestroyOnLoad(persistentObject);
         }
+    }
 }

@@ -2,19 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-public class AreaChecker : MonoBehaviour
+namespace Game.Core
 {
-    
-        [SerializeField]List<GameObject> ObjectsInRange = new List<GameObject>();
+    public class AreaChecker : MonoBehaviour
+    {
+        [Header("Holder of object in Range")]
+        [SerializeField] List<GameObject> ObjectsInRange = new List<GameObject>();
+        GameObject nearestGameObject = null;
 
         public void OnTriggerEnter(Collider other)
         {
-           // Debug.Log(other.name);
-            if(other.gameObject.tag == "Obstacle"){
+            // Debug.Log(other.name);
+            if (other.gameObject.tag == "Obstacle")
+            {
                 ObjectsInRange.Add(other.gameObject);
             }
-           
+
         }
 
         public void OnTriggerExit(Collider other)
@@ -25,10 +28,11 @@ public class AreaChecker : MonoBehaviour
             }
         }
 
+
+
         public GameObject GetNearestObject()
         {
             float minSqrDistance = Mathf.Infinity;
-            GameObject nearestGameObject = null;
             for (int i = 0; i < ObjectsInRange.Count; i++)
             {
                 float sqrDistanceToCenter = (this.transform.position - ObjectsInRange[i].transform.position).sqrMagnitude;
@@ -41,17 +45,23 @@ public class AreaChecker : MonoBehaviour
             return nearestGameObject;
         }
 
-        public bool hasNearest(){
+        public bool hasNearest()
+        {
             return ObjectsInRange.Count > 0;
         }
 
-        public void RemoveFromList(GameObject obstacle){
-            if(ObjectsInRange.Contains(obstacle)){
+        public void RemoveFromList(GameObject obstacle)
+        {
+            if (ObjectsInRange.Contains(obstacle))
+            {
                 ObjectsInRange.Remove(obstacle);
             }
         }
 
-        public void ClearList(){
+        public void ClearList()
+        {
             ObjectsInRange.Clear();
         }
+    }
 }
+

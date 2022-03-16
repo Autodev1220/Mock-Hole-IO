@@ -5,8 +5,9 @@ using UnityEngine;
 namespace Game.Movement{
     public class PatrolPaths : MonoBehaviour
     {
-
+        [Tooltip("Change color line and waypoint")]
         [SerializeField] Color pathColor;
+        [Tooltip("Adjust size of waypoint radius")]
         const float wayPointGizmoRadius = 0.3f;
         private void OnDrawGizmos()
         {   //Visualize patrol path

@@ -4,11 +4,14 @@ using UnityEngine;
 
 namespace Game.Core{
     public class ObstacleController : MonoBehaviour
-    {
+    {   
+        [Header("Reference to Child Obstacle")]
         [SerializeField] GameObject obstacleAssign;
         [SerializeField] Rigidbody rbObstacle;
+        [Header("Initial Position and Rotation")]
         [SerializeField] Vector3 obstaclePos;
         [SerializeField] Quaternion obstacleRot;
+        [Header("Respawn Timer")]
         [SerializeField] float timeBeforeRespawn;
 
 
@@ -21,8 +24,6 @@ namespace Game.Core{
                 obstaclePos = obstacleAssign.transform.position;
                 obstacleRot = obstacleAssign.transform.rotation;
             }
-
-
         }
 
         public void ReactivateObstacle()

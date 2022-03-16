@@ -6,39 +6,61 @@ using Game.Movement;
 namespace Game.Core{
     public class EnemyController : MonoBehaviour, IPolyCounterPart
     {
-        [Header("Reference will initialize at the Start")]
+        [Tooltip("Almost all reference will initialize at the Beginning")]
+        [Header("Mover Script Reference")]
         [SerializeField] Mover mover = null;
+
+        [Header("AreaChecker Script Reference")]
         [SerializeField] AreaChecker areaChecker = null;
-        [SerializeField] GameObject nearestObject = null;
+
+        [Header("Reference to the player gameObject")]
         [SerializeField] GameObject player = null;
+
+        [Header("HoleStats Script reference")]
         [SerializeField] HoleStats playerStat = null;
+
+        [Header("HoleStats Script reference")]
         [SerializeField] HoleStats EnemyStat = null;
+
+        [Header("Timer Script Reference")]
         [SerializeField] Timer timer = null;
-        [SerializeField] float maxLevel = 10;
+
+        [Header("2D Collider counter part used in Generation of MeshCollider")]
         [SerializeField] GameObject polyCounterPartRef;
-
-        [Header("Set in Prefab")]
         [SerializeField] GameObject polyCounterPartPreFab;
+        
 
+        [Header("Scale Limit")]
+        [Range(0,15)]
+        [SerializeField] float maxLevel = 14;
+        
         [Header("Speed fraction to adjust speed")]
         [Range(0, 1)]
         [SerializeField] float speedFraction = 1f;
 
         [Header("Attack Range")]
-        [SerializeField] float AttackRange = 2f;
+        [SerializeField] float attackRange = 2f;
 
         [Header("AI PATROL")]
         [SerializeField] PatrolPaths patrolPath;
         [SerializeField] float wayPointTolerance = 3f;
         [SerializeField] float waypointDwellTime = 3f;
         [SerializeField] int currentWaypointIndex = 0;
+        [Header("reference to the object closest to")]
+        [SerializeField] GameObject nearestObject = null;
         
 
         [Header("Initial Position")]
         [SerializeField] Vector3 guardPosition;
+        [Header("Initial Scale")]
+        [SerializeField] Vector3 intialScale;
+
+        [SerializeField]List<GameObject> enemiesGB = new List<GameObject>();
+        
 
         float timeSinceArrivedAtWaypoint = Mathf.Infinity;
         bool isCanMove = true;
+        float initialRange;
         
 
         void Start()
@@ -51,7 +73,18 @@ namespace Game.Core{
             if (timer == null){
                 timer = FindObjectOfType<Timer>();
                 timer.timeRunOut += TimeRunOut;
-            } 
+            }
+            intialScale = transform.localScale;
+            initialRange = attackRange;
+
+            guardPosition = transform.position;
+
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+            foreach(GameObject gb in enemies){
+                if(gb.gameObject != this.gameObject){
+                    enemiesGB.Add(gb);
+                }
+            }
             
         }
         
@@ -68,10 +101,13 @@ namespace Game.Core{
                 }
                 else
                 {
+                    
                     PatrolBehaviour();
                 }
             }
-            
+
+            AbsorbedByPlayer();
+            AbsorbedByEnemy();
 
             updateTimers();
 
@@ -80,7 +116,7 @@ namespace Game.Core{
         private bool CheckPlayer()
         {
             bool isInLevel = playerStat.GetLevel() < EnemyStat.GetLevel();
-            bool isInRange = Vector3.Distance(this.transform.position, player.transform.position) < AttackRange;
+            bool isInRange = Vector3.Distance(this.transform.position, player.transform.position) < attackRange;
             return (isInLevel && isInRange);
         }
 
@@ -88,7 +124,7 @@ namespace Game.Core{
         {
             mover.Cancel();
             mover.StartMoveAction(player.transform.position,speedFraction);
-            Absorb();
+            AbsorbPlayer();
         }
 
         private void updateTimers()
@@ -130,7 +166,6 @@ namespace Game.Core{
                     nearestObject = null;
                 }
                 
-                
             }
         }
 
@@ -143,18 +178,70 @@ namespace Game.Core{
         }
 
 
-        void Absorb(){ //absorb player hole
+        void AbsorbPlayer(){ //absorb player hole
             float scalDif = Vector3.Distance(transform.localScale,player.transform.localScale);
             Debug.Log(scalDif);
-            if (Vector3.Distance(this.transform.position, player.transform.position) <= scalDif){
+            if (Vector3.Distance(this.transform.position, player.transform.position) <= scalDif &&
+                !player.GetComponent<PlayerController>().GetIsDead()){
                 player.GetComponent<PlayerController>().Dead();
             }
+        }
+
+        void AbsorbedByPlayer(){ // can be refactored later still 
+            float scalDif = Vector3.Distance(transform.localScale, player.transform.localScale);
+            if (Vector3.Distance(this.transform.position, player.transform.position) <= scalDif &&
+            playerStat.GetLevel() > EnemyStat.GetLevel())
+            {
+               playerStat.SetPoints(playerStat.GetPoints() + 50);
+               StartCoroutine(Dead());
+            }
+        }
+
+        void AbsorbedByEnemy(){ // can be refactored later
+            GameObject nearestEnemy = GetNearestEnemy();
+            float scalDif = Vector3.Distance(transform.localScale, nearestEnemy.transform.localScale);
+            if (Vector3.Distance(this.transform.position, nearestEnemy.transform.position) <= scalDif &&
+            nearestEnemy.GetComponent<HoleStats>().GetLevel() > EnemyStat.GetLevel())
+            {
+                StartCoroutine(Dead());
+            }
+        }
+
+        public GameObject GetNearestEnemy()
+        {
+            GameObject nearestEnemy = null;
+            float minSqrDistance = Mathf.Infinity;
+            for (int i = 0; i < enemiesGB.Count; i++)
+            {
+                float sqrDistanceToCenter = (this.transform.position - enemiesGB[i].transform.position).sqrMagnitude;
+                if (sqrDistanceToCenter < minSqrDistance)
+                {
+                    minSqrDistance = sqrDistanceToCenter;
+                    nearestEnemy = enemiesGB[i];
+                }
+            }
+            return nearestEnemy;
+        }
+
+        public void ResetPost(){
+            StartCoroutine(Dead());
+        }
+
+        IEnumerator Dead()
+        {
+            isCanMove = false;
+            mover.Teleport(guardPosition);
+            yield return new WaitForSeconds(4f);
+            isCanMove = true;
+            
         }
 
         public GameObject GetPolyCounterPart()
         {
             return polyCounterPartPreFab;
         }
+
+
 
         private bool AtWaypoint()
         {
@@ -175,14 +262,14 @@ namespace Game.Core{
         private void IncreaseScale()
         {
             float level = EnemyStat.GetLevel();
-            if(level > maxLevel){
-                this.transform.localScale = new Vector3((float)maxLevel, 1f, (float)maxLevel);
-            }else{
-                this.transform.localScale = new Vector3(level, level, level);
+            if(level < maxLevel) {
+                float increasedScale = level * .3f;
+                this.transform.localScale = new Vector3(intialScale.x + increasedScale, intialScale.y + increasedScale, intialScale.z + increasedScale);
+                polyCounterPartRef.GetComponent<AdaptTransform>().changeScale();
+                attackRange =  initialRange + increasedScale;
             }
             
-            AttackRange = 2 * level; 
-            polyCounterPartRef.GetComponent<AdaptTransform>().changeScale();
+            
         }
 
         public void UpdateStats(){
@@ -207,7 +294,7 @@ namespace Game.Core{
         {   
             //draw attack range
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, AttackRange);
+            Gizmos.DrawWireSphere(transform.position, attackRange);
         }
     }
 }

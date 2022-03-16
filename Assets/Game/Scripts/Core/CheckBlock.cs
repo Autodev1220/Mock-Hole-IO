@@ -4,20 +4,26 @@ using UnityEngine;
 
 namespace Game.Core{
     public class CheckBlock : MonoBehaviour
-    {
+    {   
+        [Header("Player Reference")]
         [SerializeField] GameObject player = null;
+        [Header("Layer for linecast hit")]
         [SerializeField] LayerMask rayMask;
-        [SerializeField] GameObject obstacleHit;
-        [SerializeField] Material defaultMat;
+        [Header("Material to switch when object blocks players view")]
         [SerializeField] Material opaqueMat;
+        [SerializeField] GameObject obstacleHit;
+
+        List<ObstacleStats> obstacleList = new List<ObstacleStats>();
 
         private void Start()
         {
             player = GameObject.FindGameObjectWithTag("Player");
         }
-        private void FixedUpdate()
+        private void Update()
         {
             ChangeOpaqueLineCast();
+            if(obstacleHit != null) return;
+            restoreHit();
         }
 
         private void ChangeOpaqueLineCast()
@@ -32,6 +38,8 @@ namespace Game.Core{
                     if (obstacleHit != null)
                     {
                         obstacleHit.GetComponent<Renderer>().material = opaqueMat;
+                        if(obstacleList.Contains(obstacleHit.GetComponent<ObstacleStats>()))return;
+                        obstacleList.Add(obstacleHit.GetComponent<ObstacleStats>());                    
                     }
                 }
             }
@@ -39,10 +47,20 @@ namespace Game.Core{
             {
                 if (obstacleHit != null)
                 {
-                    obstacleHit.GetComponent<ObstacleStats>().ReturnDefaultMat();
+                     obstacleHit.GetComponent<ObstacleStats>().ReturnDefaultMat();
                      obstacleHit = null;
                 }
             }
+        }
+
+        void restoreHit(){
+            if(obstacleList.Count > 0){
+                foreach(ObstacleStats obs in obstacleList){
+                    obs.ReturnDefaultMat();
+                }
+                obstacleList.Clear();
+            }
+
         }
 
     }

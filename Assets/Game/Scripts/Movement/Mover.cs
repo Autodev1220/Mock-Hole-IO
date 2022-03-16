@@ -7,6 +7,7 @@ using Game.Core;
 namespace Game.Movement{
     public class Mover : MonoBehaviour, IAction
     {
+        [Header("Speed of movement can be override by Holestat")]
         [SerializeField] float speed = 2f;
 
         Ray lastRay;

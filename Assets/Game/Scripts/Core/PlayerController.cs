@@ -3,27 +3,49 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using Game.Movement;
+using Game.SceneManagement;
 
 namespace Game.Core{
     public class PlayerController : MonoBehaviour, IPolyCounterPart
     {
-        
-        [SerializeField] Vector3 movement = new Vector3();
-        [SerializeField] Mover mover;
-        [SerializeField] GameObject polyCounterPartPreFab;
-        [SerializeField] LayerMask rayMask;
-        [SerializeField] HoleStats holeStats;
-        [SerializeField] GameObject polyCounterPartRef;
-        [SerializeField] Transform camTransform;
-        [SerializeField] Timer timer = null;
-        [SerializeField] float maxLevel = 10;
 
+        //Almost all reference will initialize at the Beginning
+        [Header("Mover Script Reference")]
+        [SerializeField] Mover mover = null;
+        [Header("HoleStats Script Reference")]
+        [SerializeField] HoleStats holeStats = null;
+        [Header("HoleStats Script Reference")]
+        [SerializeField] Timer timer = null;
+
+        [Header("Mask for raycast")]
+        [SerializeField] LayerMask rayMask;
+        
+        [Header("2D Collider counter part used in Generation of MeshCollider")]
+        [SerializeField] GameObject polyCounterPartRef;
+        [SerializeField] GameObject polyCounterPartPreFab;
+
+        [SerializeField] Transform camTransform;
+
+        [Header("Scale Limit")]
+        [Range(0, 15)]
+        [SerializeField] float maxLevel = 15;
+        [Header("Initial Position and Scale")]
+        [SerializeField] Vector3 originPos;
+        [SerializeField] Vector3 intialScale;
+        
         [Header("Speed fraction to adjust speed")]
         [Range(0, 1)]
         [SerializeField] float speedFraction = 1f;
 
+        [Tooltip("Initial percent increase per level")]
+        [Header("Scale Factor")]
+        [Range(0, 1)]
+        [SerializeField] float ScaleFactor = .2f;
+        [SerializeField] float respawnTimer = 2f;
         bool isCanMove = true;
-        Vector3 originPos;
+        bool isDead = false;
+
+        
         
         void Start()
         {
@@ -34,7 +56,9 @@ namespace Game.Core{
                 timer = FindObjectOfType<Timer>();
                 timer.timeRunOut += TimeRunOut;
             }
+
             originPos = transform.position;
+            intialScale = transform.localScale;
 
         }
 
@@ -88,13 +112,13 @@ namespace Game.Core{
 
         private void IncreaseScale(){
             float level = holeStats.GetLevel();
-            if(level > maxLevel ) {
-                this.transform.localScale = new Vector3((float)maxLevel, maxLevel, (float)maxLevel);
-            }else{
-                this.transform.localScale = new Vector3(level, level, level);
+            if(level < maxLevel) {
+                float increasedScale = level * ScaleFactor;
+                this.transform.localScale = new Vector3(intialScale.x + increasedScale, intialScale.y + increasedScale, intialScale.z + increasedScale);
+                polyCounterPartRef.GetComponent<AdaptTransform>().changeScale();
             }
 
-            polyCounterPartRef.GetComponent<AdaptTransform>().changeScale();
+           
         }
 
 
@@ -129,7 +153,14 @@ namespace Game.Core{
         }
 
         public void Dead(){
+            isDead = true;
+            //minus points
+            
             StartCoroutine(playerDead());
+        }
+
+        public bool GetIsDead(){
+            return isDead;
         }
 
         IEnumerator playerDead(){
@@ -139,6 +170,8 @@ namespace Game.Core{
             mover.Teleport(originPos);
             yield return fader.FadeIn(1f);
             isCanMove = true;
+            yield return new WaitForSeconds(respawnTimer);
+            isDead = false;
         }
        
     }
